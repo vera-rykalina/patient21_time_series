@@ -5,7 +5,7 @@
 # Citing: Using the mock data, build a simple model to forecast the revenues to expect in 2022. Nothing fancy or very complicated is needed here, the goal is for the model to be easy to use and to understand, not to be 100% accurate.
 
 # Load packages
-pacman::p_load(tidyverse, wrappedtools,lubridate, wesanderson, plotly, flextable)
+pacman::p_load(tidyverse, wrappedtools,lubridate, wesanderson, plotly, flextable, forecast)
 
 # Load data
 rawdata <- read_csv(file="Data/fake_clinic_data_extract_test.csv")
@@ -21,7 +21,7 @@ glimpse(rawdata)
 # Count NAs 
 rawdata %>% 
   filter(revenues_from_appointment=="NULL") %>% 
-  summarise(n=n()) # 375 raws
+  summarise(n=n()) # 375 rows
 
 # Feature engineering 
 rawdata$month <- lubridate::month(rawdata$appointment_date, label=TRUE, abbr=TRUE)
@@ -48,6 +48,9 @@ rawdata$wday <- lubridate::wday(rawdata$appointment_date,
   scale_fill_manual(values=wes_palette(n=7, 
                     name="BottleRocket1"))+
   theme(legend.position="none"))
+
+ggsave(filename="Graphs/missing values records.png", dpi=200, units="cm", width=22, height=11) 
+
 
 # Internal check point
 rawdata %>% 
@@ -148,27 +151,28 @@ ifelse(rawdata$revenues_from_appointment <= 50, "\u2264 50",
 ifelse(rawdata$revenues_from_appointment <= 100, "\u2264 100",
 ifelse(rawdata$revenues_from_appointment <= 200, "\u2264 200",
 ifelse(rawdata$revenues_from_appointment <= 500, "\u2264 500", ifelse(rawdata$revenues_from_appointment <= 1000, "\u2264 1000",
-       " >1000")))))
+       " > 1000")))))
 
 # Plot
 rawdata %>%
   ggplot(aes(x=factor(revenue_ctg, 
           levels = c("\u2264 50","\u2264 100", 
                      "\u2264 200", "\u2264 500",
-                     "\u2264 1000"," >1000")), 
+                     "\u2264 1000"," > 1000")), 
              y=revenues_from_appointment,
              fill=clinic_name)) + 
-  geom_col()+
+  geom_col() +
   labs(x="Invoice category", y="Revenue") +
-  scale_fill_manual(
-    values=wes_palette(n=5, 
-    name="BottleRocket1"), 
-    labels=c("Clinic 1", "Clinic 2"))+
   facet_wrap(~factor(clinic_name,
                      labels =c("Clinic 1", "Clinic 2"))) +
+  scale_fill_manual(
+    values=wes_palette(n=2, 
+                       name="BottleRocket1"), 
+    labels=c("Clinic 1", "Clinic 2")) +
   theme(legend.position = "none",
         text = element_text(size = 14))
-ggsave(filename="Graphs/invoice_category.png", dpi=200, units="cm", width=22, height=11)
+
+ggsave(filename="Graphs/invoice_category.png", dpi=300, units="cm", width=22, height=11, type = "cairo-png")
 
 # Visualize revenues by month not exceeding 500 bill, excluding June (as it is only two days within a month)
 rawdata %>%
