@@ -49,7 +49,7 @@ rawdata$wday <- lubridate::wday(rawdata$appointment_date,
                     name="BottleRocket1"))+
   theme(legend.position="none"))
 
-ggsave(filename="Graphs/missing values records.png", dpi=200, units="cm", width=22, height=11) 
+ggsave(filename="Graphs/missing_values_records.png", dpi=200, units="cm", width=22, height=11) 
 
 
 # Internal check point
